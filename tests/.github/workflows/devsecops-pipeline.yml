@@ -1,0 +1,37 @@
+name: DevSecOps Pipeline
+
+on: [push]
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Dependency Scan
+      run: |
+        pip install pip-audit
+        pip-audit
+
+    - name: Run Tests
+      run: pytest
+
+    - name: Build Docker Image
+      run: docker build -t secure-app .
+
+    - name: Container Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: secure-app
+
+    - name: Deploy
+      run: echo "Deployment successful"
